@@ -1,12 +1,14 @@
+import os
 import requests
 from logging import Logger
 from fastapi import APIRouter, status
+from fastapi.responses import FileResponse
 from api.helpers import api_response, save_to_file
 
 router = APIRouter()
 logger = Logger("router")
 
-DUMMY_CSV = "https://gist.githubusercontent.com/armgilles/194bcff35001e7eb53a2a8b441e8b2c6/raw/92200bc0a673d5ce2110aaad4544ed6c4010f687/pokemon.csv"
+DUMMY_CSV = "https://gist.githubusercontent.com/armgilles/194bcff3001e7eb53a2a8b441e8b2c6/raw/92200bc0a673d5ce2110aaad4544ed6c4010f687/pokemon.csv"
 
 
 @router.post("/generate")
@@ -26,6 +28,24 @@ def generate():
                 "filename": filename,
             },
         )
+    except Exception as err:
+        logger.error(err)
+
+        return api_response(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal Server Error."
+        )
+
+
+@router.get("/download")
+def download():
+    """Send csv file to client."""
+    try:
+        filename = "output/out.csv"
+
+        if not os.path.exists(filename):
+            raise ValueError("File Not Found.")
+
+        return FileResponse(path=filename, media_type="application/octet-stream")
     except Exception as err:
         logger.error(err)
 
