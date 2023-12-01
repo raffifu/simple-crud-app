@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from kafka import KafkaProducer
 from fastapi.responses import JSONResponse
 
 
@@ -22,3 +23,12 @@ def save_to_file(filename, data):
 
     with open(filename, "w") as f:
         f.write(data)
+
+
+def send_to_kafka(topic, message):
+    """Send message to kafka"""
+    producer = KafkaProducer(bootstrap_servers="localhost:9092")
+
+    producer.send(topic, message)
+
+    producer.flush()

@@ -3,7 +3,7 @@ import requests
 from logging import Logger
 from fastapi import APIRouter, status
 from fastapi.responses import FileResponse
-from api.helpers import api_response, save_to_file
+from api.helpers import api_response, save_to_file, send_to_kafka
 
 router = APIRouter()
 logger = Logger("router")
@@ -52,3 +52,11 @@ def download():
         return api_response(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal Server Error."
         )
+
+
+@router.get("/send_mq")
+def send_mq(topic: str, message: str = "Hello World!"):
+    """Send data to message queue"""
+    send_to_kafka(topic, message.encode("utf-8"))
+
+    return api_response(status.HTTP_200_OK, "Success.", message)
