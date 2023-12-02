@@ -1,7 +1,9 @@
 import os
 from datetime import datetime
-from kafka import KafkaProducer
+from aiokafka import AIOKafkaProducer
 from fastapi.responses import JSONResponse
+
+BOOTSTRAP_SERVER = os.getenv("BOOTSTRAP_SERVER", "localhost:9092")
 
 
 def api_response(status, message, data=None):
@@ -25,10 +27,13 @@ def save_to_file(filename, data):
         f.write(data)
 
 
-def send_to_kafka(topic, message):
+async def send_to_kafka(topic, message):
     """Send message to kafka"""
-    producer = KafkaProducer(bootstrap_servers="localhost:9092")
+    producer = AIOKafkaProducer(bootstrap_servers=BOOTSTRAP_SERVER)
 
-    producer.send(topic, message)
+    await producer.start()
 
-    producer.flush()
+    try:
+        await producer.send_and_wait(topic, message)
+    finally:
+        await producer.stop()
